@@ -8,6 +8,7 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -18,6 +19,11 @@ const sessions = {};
 // Route: Dashboard
 app.get("/", (req, res) => {
   res.render("dashboard", { sessions });
+});
+
+// Route: New Session Form
+app.get("/new", (req, res) => {
+  res.render("register");
 });
 
 // Route: Create New Session
@@ -34,7 +40,18 @@ app.post("/register", (req, res) => {
     expiresAt: Date.now() + 3600000, // 1-hour timer
   };
 
-  res.json({ sessionId, link: `/session/${sessionId}` });
+  res.redirect(`/session/${sessionId}`);
+});
+
+// Route: View Session
+app.get("/session/:id", (req, res) => {
+  const { id } = req.params;
+
+  if (!sessions[id]) {
+    return res.status(404).send("Session not found");
+  }
+
+  res.render("session", { sessionId: id, session: sessions[id] });
 });
 
 // Route: Add Contact to Session
@@ -43,11 +60,11 @@ app.post("/session/:id/add", (req, res) => {
   const { name, phone } = req.body;
 
   if (!sessions[id]) {
-    return res.status(404).json({ error: "Session not found" });
+    return res.status(404).send("Session not found");
   }
 
   sessions[id].contacts.push({ name, phone });
-  res.json({ success: true });
+  res.redirect(`/session/${id}`);
 });
 
 // Route: Download VCF File
@@ -55,7 +72,7 @@ app.get("/session/:id/download", (req, res) => {
   const { id } = req.params;
 
   if (!sessions[id]) {
-    return res.status(404).json({ error: "Session not found" });
+    return res.status(404).send("Session not found");
   }
 
   const session = sessions[id];
@@ -78,4 +95,3 @@ app.get("/session/:id/download", (req, res) => {
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-    
