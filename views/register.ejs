@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register New Session</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Register a New Session</h1>
+    <form action="/register" method="POST">
+      <label for="groupLink">WhatsApp Group Link:</label>
+      <input type="url" id="groupLink" name="groupLink" required>
+      
+      <label for="isAdmin">Are you an admin?</label>
+      <select id="isAdmin" name="isAdmin" required>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+      
+      <label for="adminName">Your Name:</label>
+      <input type="text" id="adminName" name="adminName" required>
+      
+      <button type="submit">Create Session</button>
+    </form>
+  </div>
+</body>
+</html>
