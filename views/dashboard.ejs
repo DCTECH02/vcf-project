@@ -1,11 +1,33 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact VCF Generator</title>
-  <link rel="stylesheet" href="/css/style.css">
+    <title>Contact VCF Generator</title>
+    <script>
+      function startCountdowns() {
+        const countdownElements = document.querySelectorAll(".countdown");
+
+        countdownElements.forEach((element) => {
+          let timeRemaining = parseInt(element.dataset.remaining);
+
+          function updateCountdown() {
+            if (timeRemaining > 0) {
+              const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+              const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
+              const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+              element.innerText = `${hours}h ${minutes}m ${seconds}s`;
+              timeRemaining -= 1000;
+            } else {
+              element.innerText = "Session Expired!";
+            }
+          }
+
+          updateCountdown();
+          setInterval(updateCountdown, 1000);
+        });
+      }
+
+      window.onload = startCountdowns;
+    </script>
 </head>
 <body>
   <div class="container">
@@ -17,6 +39,8 @@
         <li>
           <strong>Session:</strong> <a href="/session/<%= id %>"><%= id %></a>
           <br><strong>Expires At:</strong> <%= new Date(sessions[id].expiresAt).toLocaleString() %>
+          <br><strong>Countdown:</strong> 
+          <span class="countdown" data-remaining="<%= new Date(sessions[id].expiresAt) - new Date() %>"></span>
         </li>
       <% }); %>
     </ul>

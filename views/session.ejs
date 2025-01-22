@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Session <%= sessionId %></title>
   <link rel="stylesheet" href="/css/style.css">
+  <script>
+    let timeRemaining = <%= new Date(session.expiresAt) - new Date() %>; // Time remaining in milliseconds
+
+    function updateCountdown() {
+      if (timeRemaining > 0) {
+        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+        const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+        document.getElementById("countdown").innerText = `${hours}h ${minutes}m ${seconds}s`;
+        timeRemaining -= 1000;
+      } else {
+        document.getElementById("countdown").innerText = "Session Expired!";
+      }
+    }
+
+    setInterval(updateCountdown, 1000);
+  </script>
 </head>
 <body>
   <div class="container">
@@ -13,14 +29,17 @@
     <p><strong>WhatsApp Group Link:</strong> <%= session.groupLink %></p>
     <p><strong>Admin Name:</strong> <%= session.adminName %></p>
     <p><strong>Expires At:</strong> <%= new Date(session.expiresAt).toLocaleString() %></p>
-    
+
+    <h2>Countdown Timer:</h2>
+    <p id="countdown"></p> <!-- Countdown will display here -->
+
     <h2>Add Contact</h2>
     <form action="/session/<%= sessionId %>/add" method="POST">
       <label for="name">Name:</label>
       <input type="text" id="name" name="name" required>
       
-      <label for="phone">Phone Number:</label>
-      <input type="tel" id="phone" name="phone" required>
+      <label for="phone">Phone Number (International Format):</label>
+      <input type="tel" id="phone" name="phone" pattern="^\+?[1-9]\d{1,14}$" placeholder="+2349066528353" required>
       
       <button type="submit">Add Contact</button>
     </form>

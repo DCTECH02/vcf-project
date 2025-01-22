@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact VCF Generator</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Contact VCF Generator</h1>
+    <button onclick="window.location='/new'">Register New Session</button>
+    <h2>Active Sessions</h2>
+    <ul id="sessions">
+      <% Object.keys(sessions).forEach((id) => { %>
+        <li>
+          <strong>Session:</strong> <a href="/session/<%= id %>"><%= id %></a>
+          <br><strong>Expires At:</strong> <%= new Date(sessions[id].expiresAt).toLocaleString() %>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+</body>
+</html>
