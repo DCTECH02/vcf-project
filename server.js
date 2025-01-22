@@ -1,4 +1,3 @@
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const { v4: uuidv4 } = require("uuid");
@@ -28,16 +27,29 @@ app.get("/new", (req, res) => {
 
 // Route: Create New Session
 app.post("/register", (req, res) => {
-  const { groupLink, isAdmin, adminName } = req.body;
+  const { groupName, countdownTime, phoneNumber } = req.body;
+
+  // Validate phone number format
+  const phoneRegex = /^\+\d{1,3}\d{4,14}(?:x\d+)?$/;
+  if (!phoneRegex.test(phoneNumber)) {
+    return res.status(400).send("Invalid phone number format. Use international format like +2349066528353.");
+  }
+
+  // Validate countdown time (max 24 hours)
+  const countdownInMs = parseInt(countdownTime, 10) * 60 * 60 * 1000; // Convert hours to milliseconds
+  if (isNaN(countdownInMs) || countdownInMs > 24 * 60 * 60 * 1000) {
+    return res.status(400).send("Invalid countdown time. Maximum is 24 hours.");
+  }
+
   const sessionId = uuidv4();
+  const expiresAt = Date.now() + countdownInMs;
 
   // Create session
   sessions[sessionId] = {
-    groupLink,
-    isAdmin,
-    adminName,
+    groupName,
+    phoneNumber,
     contacts: [],
-    expiresAt: Date.now() + 3600000, // 1-hour timer
+    expiresAt,
   };
 
   res.redirect(`/session/${sessionId}`);
@@ -51,7 +63,14 @@ app.get("/session/:id", (req, res) => {
     return res.status(404).send("Session not found");
   }
 
-  res.render("session", { sessionId: id, session: sessions[id] });
+  const session = sessions[id];
+  const timeRemaining = session.expiresAt - Date.now();
+
+  if (timeRemaining > 0) {
+    res.render("countdown", { timeRemaining, groupName: session.groupName });
+  } else {
+    res.render("download", { groupName: session.groupName, phoneNumber: session.phoneNumber });
+  }
 });
 
 // Route: Add Contact to Session
