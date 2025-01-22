@@ -27,29 +27,15 @@ app.get("/new", (req, res) => {
 
 // Route: Create New Session
 app.post("/register", (req, res) => {
-  const { groupName, countdownTime, phoneNumber } = req.body;
-
-  // Validate phone number format
-  const phoneRegex = /^\+\d{1,3}\d{4,14}(?:x\d+)?$/;
-  if (!phoneRegex.test(phoneNumber)) {
-    return res.status(400).send("Invalid phone number format. Use international format like +2349066528353.");
-  }
-
-  // Validate countdown time (max 24 hours)
-  const countdownInMs = parseInt(countdownTime, 10) * 60 * 60 * 1000; // Convert hours to milliseconds
-  if (isNaN(countdownInMs) || countdownInMs > 24 * 60 * 60 * 1000) {
-    return res.status(400).send("Invalid countdown time. Maximum is 24 hours.");
-  }
-
+  const { groupName, countdownTime } = req.body;
   const sessionId = uuidv4();
-  const expiresAt = Date.now() + countdownInMs;
 
   // Create session
   sessions[sessionId] = {
     groupName,
-    phoneNumber,
+    countdownTime: parseInt(countdownTime, 10) * 3600000, // Convert hours to milliseconds
     contacts: [],
-    expiresAt,
+    expiresAt: Date.now() + parseInt(countdownTime, 10) * 3600000,
   };
 
   res.redirect(`/session/${sessionId}`);
@@ -66,11 +52,12 @@ app.get("/session/:id", (req, res) => {
   const session = sessions[id];
   const timeRemaining = session.expiresAt - Date.now();
 
-  if (timeRemaining > 0) {
-    res.render("countdown", { timeRemaining, groupName: session.groupName });
-  } else {
-    res.render("download", { groupName: session.groupName, phoneNumber: session.phoneNumber });
-  }
+  res.render("session", {
+    sessionId: id,
+    session,
+    timeRemaining,
+    showDownloadButton: timeRemaining <= 0,
+  });
 });
 
 // Route: Add Contact to Session
@@ -80,6 +67,12 @@ app.post("/session/:id/add", (req, res) => {
 
   if (!sessions[id]) {
     return res.status(404).send("Session not found");
+  }
+
+  // Validate phone number
+  const phoneRegex = /^\+\d{1,3}\d{4,14}$/;
+  if (!phoneRegex.test(phone)) {
+    return res.status(400).send("Invalid phone number. Use international format (e.g., +2349066528353).");
   }
 
   sessions[id].contacts.push({ name, phone });
